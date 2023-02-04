@@ -7,13 +7,16 @@ import com.example.newsservice.repository.NewsRepository;
 import com.example.newsservice.repository.PhotoRepository;
 import com.example.newsservice.repository.ReadStatusRepository;
 import com.example.newsservice.repository.UserRepository;
+import com.example.newsservice.utils.PhotoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.imaging.ImageReadException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 
 @Slf4j
@@ -31,16 +34,18 @@ public class NewsDataLoader implements CommandLineRunner {
 
     private final PhotoRepository photoRepository;
 
+    private final PhotoUtils photoUtils;
+
     @Override
     public void run(String... args) throws Exception {
         loadNewsData();
     }
 
-    protected void loadNewsData() {
+    protected void loadNewsData() throws IOException, ImageReadException {
 
         Photo photo1 = photoRepository.save(Photo.builder()
                 .photoName("Princess Diana")
-                .metaData("Metadata to Princess Diana's Photo")
+                .metaData(photoUtils.getMetadataFromPhoto("https://metro.co.uk/wp-content/uploads/2022/08/SEC_121997629-5526.jpg"))
                 .photoData(new byte[]{})
                 .linkToPhoto("https://metro.co.uk/wp-content/uploads/2022/08/SEC_121997629-5526.jpg")
                 .build()
@@ -48,7 +53,7 @@ public class NewsDataLoader implements CommandLineRunner {
 
         Photo photo2 = photoRepository.save(Photo.builder()
                 .photoName("Harry Potter Book")
-                .metaData("Metadata to Harry Potter Book")
+                .metaData(photoUtils.getMetadataFromPhoto("https://thumbs.dreamstime.com/z/harry-potter-warner-brothers-studio-tour-london-uk-entrance-where-filmed-actual-film-series-movie-poster-sorcerers-164168768.jpg"))
                 .photoData(new byte[]{})
                 .linkToPhoto("https://thumbs.dreamstime.com/z/harry-potter-warner-brothers-studio-tour-london-uk-entrance-where-filmed-actual-film-series-movie-poster-sorcerers-164168768.jpg")
                 .build()
@@ -56,9 +61,9 @@ public class NewsDataLoader implements CommandLineRunner {
 
         Photo photo3 = photoRepository.save(Photo.builder()
                 .photoName("Metallica Single St. Anger")
-                .metaData("Metadata to Metallica Single St. Anger")
+                .metaData(photoUtils.getMetadataFromPhoto("https://1.bp.blogspot.com/-ERAaZVGM2Og/V_6AofQVhUI/AAAAAAAAECw/fxwjRlATA3gVdqhBIi6Ce6kWZTkpBx3mACLcB/s1600/metallica%2Bpic%2Bst%2Banger%2Bera.jpg"))
                 .photoData(new byte[]{})
-                .linkToPhoto("https://en.wikipedia.org/wiki/St._Anger_(song)#/media/File:Metallica_-_St._Anger_single_cover.jpg")
+                .linkToPhoto("https://1.bp.blogspot.com/-ERAaZVGM2Og/V_6AofQVhUI/AAAAAAAAECw/fxwjRlATA3gVdqhBIi6Ce6kWZTkpBx3mACLcB/s1600/metallica%2Bpic%2Bst%2Banger%2Bera.jpg")
                 .build()
         );
 
@@ -98,7 +103,7 @@ public class NewsDataLoader implements CommandLineRunner {
                 .title("New Metallica Single")
                 .text("A new Metallica Single has been released on 23th of June 2003. It is called St. Anger \n" +
                         " and the video to it was shot in a maximum security federal prison.\n")
-                .linkToPhoto("https://en.wikipedia.org/wiki/St._Anger_(song)#/media/File:Metallica_-_St._Anger_single_cover.jpg")
+                .linkToPhoto("https://1.bp.blogspot.com/-ERAaZVGM2Og/V_6AofQVhUI/AAAAAAAAECw/fxwjRlATA3gVdqhBIi6Ce6kWZTkpBx3mACLcB/s1600/metallica%2Bpic%2Bst%2Banger%2Bera.jpg")
                 .validFrom(OffsetDateTime.parse("2003-06-29T02:05:25+02:00"))
                 .validTo(OffsetDateTime.parse("2003-09-29T02:05:25+02:00"))
                 .allowedRole("READER")

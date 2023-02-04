@@ -13,6 +13,7 @@ import org.springframework.data.util.Optionals;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.thymeleaf.util.StringUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -115,8 +116,10 @@ public class NewsServiceImpl implements NewsService {
     }
 
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole) {
-        newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
-        roleRepository.findByRoleName(ROLE_PREFIX + allowedRole).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found. Role name: " + allowedRole));
+        News news = newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
+        roleRepository.findByRoleName(ROLE_PREFIX + allowedRole.toUpperCase()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found. Role name: " + allowedRole));
+        if (!StringUtils.equalsIgnoreCase(allowedRole, news.getAllowedRole()))
+            throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED, "Getting picture is not possible. Role not allowed. Role name: " + allowedRole);
         Optional<Photo> pictureOptional = photoRepository.findByIdAndNewsIdAndIgnoreCaseNewsAllowedRole(pictureId, newsId, allowedRole);
         return pictureOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Picture not found. Picture id: " + pictureId));
     }
