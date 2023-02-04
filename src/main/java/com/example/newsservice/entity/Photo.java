@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -35,8 +33,19 @@ public class Photo extends BaseEntity {
     @Column(name = "photodata", length = 1000)
     private byte[] photoData;
 
+    @OneToOne
+    private News news;
+
     private String metaData;
     @Column(unique = true)
     private String linkToPhoto;
 
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "photoName='" + photoName + '\'' +
+                ", metaData='" + metaData + '\'' +
+                ", linkToPhoto='" + linkToPhoto + '\'' +
+                '}';
+    }
 }

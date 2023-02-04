@@ -3,6 +3,7 @@ package com.example.newsservice.controller;
 import com.example.newsservice.dto.NewsDto;
 import com.example.newsservice.dto.ReadStatusDto;
 import com.example.newsservice.entity.News;
+import com.example.newsservice.entity.Photo;
 import com.example.newsservice.security.User;
 import com.example.newsservice.service.NewsService;
 import io.swagger.annotations.Api;
@@ -17,11 +18,17 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 
 @RestController
 @RequestMapping("/news")
@@ -76,6 +83,24 @@ public class NewsController {
         ResponseEntity<List<News>> build = checkUserExists(accountId);
         if (build != null) return build;
         return ResponseEntity.ok().body(newsService.getRecentNewsForSingleAccount(accountId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'READER', 'PUBLISHER')")
+    @GetMapping(value = "/{newsId}/picture/{pictureId}/roleName/{role}", produces = IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getPictureForNewsIdAndPictureIdAndRole(@PathVariable(value = "newsId") UUID newsId,
+                                                                         @PathVariable(value = "pictureId") UUID pictureId,
+                                                                         @PathVariable(value = "role") String role) throws IOException {
+        Photo photo = newsService.getPictureForNewsIdAndPictureIdAndRole(newsId, pictureId, role);
+        URL url = new URL(photo.getLinkToPhoto());
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (InputStream inputStream = url.openStream()) {
+            int bytesRead;
+            byte[] chunk = new byte[1024];
+            while ((bytesRead = inputStream.read(chunk)) > 0) {
+                byteArrayOutputStream.write(chunk, 0, bytesRead);
+            }
+        }
+        return ResponseEntity.ok().body(byteArrayOutputStream.toByteArray());
     }
 
     @PreAuthorize("hasRole('READER')")

@@ -27,7 +27,7 @@ public class News extends BaseEntity {
     @Builder
     public News(UUID id, Long version, Timestamp createdDate, Timestamp lastModifiedDate, String title,
                 String text, String linkToPhoto, OffsetDateTime validFrom,
-                OffsetDateTime validTo, String allowedRole, String unAllowedRole, ReadStatus readStatus) {
+                OffsetDateTime validTo, String allowedRole, String unAllowedRole, ReadStatus readStatus, Photo photo) {
         super(id, version, createdDate, lastModifiedDate);
         this.title = title;
         this.text = text;
@@ -37,6 +37,7 @@ public class News extends BaseEntity {
         this.allowedRole = allowedRole;
         this.unAllowedRole = unAllowedRole;
         this.readStatus = readStatus;
+        this.photo = photo;
     }
 
     private String title;
@@ -52,6 +53,9 @@ public class News extends BaseEntity {
     @OneToOne(cascade = CascadeType.ALL)
     private ReadStatus readStatus;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private Photo photo;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ", shape = JsonFormat.Shape.STRING)
     @JsonProperty("validFrom")
     private OffsetDateTime validFrom = null;
@@ -59,4 +63,18 @@ public class News extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ", shape = JsonFormat.Shape.STRING)
     @JsonProperty("validTo")
     private OffsetDateTime validTo = null;
+
+    @Override
+    public String toString() {
+        return "News{" +
+                "title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                ", linkToPhoto='" + linkToPhoto + '\'' +
+                ", allowedRole='" + allowedRole + '\'' +
+                ", unAllowedRole='" + unAllowedRole + '\'' +
+                ", readStatus=" + readStatus +
+                ", validFrom=" + validFrom +
+                ", validTo=" + validTo +
+                '}';
+    }
 }

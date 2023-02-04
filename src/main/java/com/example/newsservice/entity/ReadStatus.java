@@ -34,4 +34,12 @@ public class ReadStatus extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", shape = JsonFormat.Shape.STRING, timezone = "UTC")
     @JsonProperty("readDate")
     private Instant readDate;
+
+    @Override
+    public String toString() {
+        return "ReadStatus{" +
+                "accountId=" + accountId +
+                ", readDate=" + readDate +
+                '}';
+    }
 }
