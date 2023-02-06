@@ -14,6 +14,7 @@
         <li>news (0 bis x)</li>
   </ul>
 </ul>
+GET Request in form: <b>http://localhost:8080/news/account/{accountId}/role/{role}</b> <br>
 GET Request Example: <b>http://localhost:8080/news/account/5/role/PUBLISHER</b>
 <h3>2. Set read status</h3><br>
 <ul>
@@ -28,7 +29,7 @@ GET Request Example: <b>http://localhost:8080/news/account/5/role/PUBLISHER</b>
         <li>Ok or error</li>
   </ul>
 </ul>
-PUT Request in form: <b>http://localhost:8080/news/{newsId}/account/5</b> <br>
+PUT Request in form: <b>http://localhost:8080/news/{newsId}/account/{accountId}</b> <br>
 PUT Request Example: <b>http://localhost:8080/news/61008630-4b61-4b28-8594-a7f1febc2a33/account/5</b> <br>
 PUT Request payload: <br>
 <code>
