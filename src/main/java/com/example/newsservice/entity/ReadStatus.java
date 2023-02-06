@@ -1,7 +1,7 @@
 package com.example.newsservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class ReadStatus extends BaseEntity {
     private Integer accountId;
 
     @OneToOne(mappedBy = "readStatus")
-    @JsonManagedReference
+    @JsonBackReference
     private News news;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", shape = JsonFormat.Shape.STRING, timezone = "UTC")

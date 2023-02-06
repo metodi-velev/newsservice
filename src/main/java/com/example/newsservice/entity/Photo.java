@@ -1,12 +1,11 @@
 package com.example.newsservice.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.imaging.common.ImageMetadata;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -34,7 +33,7 @@ public class Photo extends BaseEntity {
     private byte[] photoData;
 
     @OneToOne(mappedBy = "photo")
-    @JsonManagedReference
+    @JsonBackReference
     private News news;
 
     @Transient
