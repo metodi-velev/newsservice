@@ -67,13 +67,25 @@ public class NewsDataLoader implements CommandLineRunner {
                 .build()
         );
 
-        ReadStatus readStatus = readStatusRepository.save(ReadStatus.builder()
+        ReadStatus readStatus1 = readStatusRepository.save(ReadStatus.builder()
                 .accountId(userRepository.getUserAccountId("john"))
                 .readDate(null)
                 .build()
         );
 
-        News news1 = newsRepository.save(News.builder()
+        ReadStatus readStatus2 = readStatusRepository.save(ReadStatus.builder()
+                .accountId(userRepository.getUserAccountId("john"))
+                .readDate(null)
+                .build()
+        );
+
+        ReadStatus readStatus3 = readStatusRepository.save(ReadStatus.builder()
+                .accountId(userRepository.getUserAccountId("john"))
+                .readDate(null)
+                .build()
+        );
+
+        newsRepository.save(News.builder()
                 .title("Princess Diana got divorced with prince Charles")
                 .text("Princess Diana got divorced with prince Charles and had begun an affair with billionair's son Dodi " +
                         "Al Fayet. She continues to take care of ill and poor children in Africa.")
@@ -82,11 +94,11 @@ public class NewsDataLoader implements CommandLineRunner {
                 .validTo(OffsetDateTime.parse("2022-08-29T02:05:25+02:00"))
                 .allowedRole("PUBLISHER")
                 .unAllowedRole("READER")
-                .readStatus(readStatus)
+                .readStatus(readStatus1)
                 .photo(photo1)
                 .build());
 
-        News news2 = newsRepository.save(News.builder()
+        newsRepository.save(News.builder()
                 .title("New Harry Potter Book")
                 .text("A new Harry Potter book has been released on 9th of June 2010. In the book the main actor \n" +
                         " punishes the evil creatures with a spell.\n")
@@ -95,11 +107,11 @@ public class NewsDataLoader implements CommandLineRunner {
                 .validTo(OffsetDateTime.parse("2020-06-29T02:05:25+02:00"))
                 .allowedRole("READER")
                 .unAllowedRole("PUBLISHER")
-                .readStatus(readStatus)
+                .readStatus(readStatus2)
                 .photo(photo2)
                 .build());
 
-        News news3 = newsRepository.save(News.builder()
+        newsRepository.save(News.builder()
                 .title("New Metallica Single")
                 .text("A new Metallica Single has been released on 23th of June 2003. It is called St. Anger \n" +
                         " and the video to it was shot in a maximum security federal prison.\n")
@@ -108,17 +120,9 @@ public class NewsDataLoader implements CommandLineRunner {
                 .validTo(OffsetDateTime.parse("2003-09-29T02:05:25+02:00"))
                 .allowedRole("READER")
                 .unAllowedRole("PUBLISHER")
-                .readStatus(readStatus)
+                .readStatus(readStatus3)
                 .photo(photo3)
                 .build());
-
-        photo1.setNews(news1);
-        photo2.setNews(news2);
-        photo3.setNews(news3);
-
-        photoRepository.save(photo1);
-        photoRepository.save(photo2);
-        photoRepository.save(photo3);
 
         log.debug("News Loaded: " + newsRepository.count());
         log.debug("Photos Loaded: " + photoRepository.count());

@@ -1,5 +1,6 @@
 package com.example.newsservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -7,17 +8,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Created by jt on 2019-01-26.
- */
 @Getter
 @Setter
 @Entity
@@ -51,9 +46,13 @@ public class News extends BaseEntity {
     private String unAllowedRole;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "read_status_id", referencedColumnName = "id")
+    @JsonBackReference
     private ReadStatus readStatus;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "photo_id", referencedColumnName = "id")
+    @JsonBackReference
     private Photo photo;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ", shape = JsonFormat.Shape.STRING)

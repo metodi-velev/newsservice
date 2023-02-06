@@ -16,9 +16,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Created by jt on 6/22/20.
- */
 @Slf4j
 @RequiredArgsConstructor
 @Service

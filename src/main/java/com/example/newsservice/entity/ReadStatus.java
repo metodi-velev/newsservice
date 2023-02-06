@@ -1,6 +1,7 @@
 package com.example.newsservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,13 +9,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Created by jt on 2019-01-26.
- */
 @Getter
 @Setter
 @Entity
@@ -30,6 +29,10 @@ public class ReadStatus extends BaseEntity {
     }
 
     private Integer accountId;
+
+    @OneToOne(mappedBy = "readStatus")
+    @JsonManagedReference
+    private News news;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", shape = JsonFormat.Shape.STRING, timezone = "UTC")
     @JsonProperty("readDate")

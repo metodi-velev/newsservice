@@ -68,7 +68,7 @@ public class NewsController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'READER', 'PUBLISHER')")
-    @GetMapping(value = "/accountId/{accountId}/roleName/{role}", produces = "application/json")
+    @GetMapping(value = "/account/{accountId}/role/{role}", produces = "application/json")
     public ResponseEntity<List<News>> getNewsForSingleAccountAndRole(@PathVariable(value = "accountId") Integer accountId,
                                                                      @PathVariable(value = "role") String role) {
         ResponseEntity<List<News>> build = checkUserExists(accountId);
@@ -86,7 +86,7 @@ public class NewsController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'READER', 'PUBLISHER')")
-    @GetMapping(value = "/{newsId}/picture/{pictureId}/roleName/{role}", produces = IMAGE_JPEG_VALUE)
+    @GetMapping(value = "/{newsId}/picture/{pictureId}/role/{role}", produces = IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> getPictureForNewsIdAndPictureIdAndRole(@PathVariable(value = "newsId") UUID newsId,
                                                                          @PathVariable(value = "pictureId") UUID pictureId,
                                                                          @PathVariable(value = "role") String role) throws IOException {
@@ -147,7 +147,7 @@ public class NewsController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'READER', 'PUBLISHER')")
-    @PutMapping(path = {"{newsId}/{accountId}"}, produces = {"application/json"})
+    @PutMapping(path = {"{newsId}/account/{accountId}"}, produces = {"application/json"})
     public ResponseEntity<String> updateNewsReadStatus(@PathVariable("newsId") UUID newsId,
                                                        @PathVariable("accountId") Integer accountId,
                                                        @Valid @RequestBody ReadStatusDto readStatusDto) {

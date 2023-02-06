@@ -1,5 +1,6 @@
 package com.example.newsservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +12,6 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-/**
- * Created by jt on 2019-01-26.
- */
 @Getter
 @Setter
 @Entity
@@ -35,7 +33,8 @@ public class Photo extends BaseEntity {
     @Column(name = "photodata", length = 1000)
     private byte[] photoData;
 
-    @OneToOne
+    @OneToOne(mappedBy = "photo")
+    @JsonManagedReference
     private News news;
 
     @Transient
