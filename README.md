@@ -60,14 +60,11 @@ GET Request Example: <br> <b>http://localhost:8080/news/2983ec85-b044-456f-a1c5-
   <li>Uploads a picture - possible only for users with role PUBLISHER</li>
   <li>Input</li>
   <ul>
-        <li>News id</li>
-        <li>Picture id</li>
-        <li>rolles</li>
+        <li>Image as MultipartFile request parameter</li>
   </ul>
   <li>Output</li>
     <ul>
-        <li>Picture as file</li>
-        <li>Meta data</li>
+        <li>Ok or error</li>
   </ul>
 </ul>
 POST Request in form: <b>http://localhost:8080/picture/upload</b> <br>
