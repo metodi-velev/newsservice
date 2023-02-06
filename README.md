@@ -63,6 +63,6 @@ GET Request Example: <br> <b>http://localhost:8080/news/2983ec85-b044-456f-a1c5-
   <li><b>Publisher</b>: he can create news and edit or delete of the contents he had created</li> <br>
 </ul>
 Every user has own account, which has an unique ID. Every user has a specific role. <br>
-News contains simple text or/and photo.
+News contains simple text or/and photo. <br>
 
 
