@@ -1,4 +1,5 @@
-### REST-based microservice - Newsservice using Spring Boot, Spring Data JPA, Maven, Java8 and H2 in-memory DB.
+# REST-based microservice called Newsservice
+REST-based microservice - Newsservice using Spring Boot, Spring Data JPA, Maven, Java8 and H2 in-memory DB.
 <hr>
 <h2>Requests</h2> <br>
 <h3>1. GET actual news for a single role/accountID</h3><br>
