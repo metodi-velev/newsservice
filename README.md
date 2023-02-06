@@ -54,8 +54,8 @@ PUT Request payload: <br>
 </ul>
 GET Request in form: <b>http://localhost:8080/news/{newsId}/picture/{pictureId}/role/{role}</b> <br>
 GET Request Example: <br> <b>http://localhost:8080/news/2983ec85-b044-456f-a1c5-d151b2a1879c/picture/dc5e622c-ec31-47d9-87c7-466454fdecdf/role/reader</b> <br>
-<h3>4. CRUD REST enpoints for News resource</h3><br>
-<h3>5. CRUD REST enpoints for Role resource</h3><br>
+<h3>4. CRUD REST endpoints for News resource</h3><br>
+<h3>5. CRUD REST endpoints for Role resource</h3><br>
 <h3>Description of the Roles</h3><br>
 <ul>
   <li><b>Admin</b>: He has the right to see all contents and edit and delete all contents</li> <br>
