@@ -1,5 +1,6 @@
 package com.example.newsservice.controller;
 
+import com.example.newsservice.dto.NewsDetailsDto;
 import com.example.newsservice.dto.NewsDto;
 import com.example.newsservice.dto.ReadStatusDto;
 import com.example.newsservice.entity.News;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,7 +23,6 @@ import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +117,11 @@ public class NewsController {
     public ResponseEntity<News> addNews(@Valid @RequestBody News news) {
         News addedNews = newsService.addNews(news);
         LOG.info("Created News with Id: {} and title : {}", addedNews.getId(), addedNews.getTitle());
-        return new ResponseEntity<>(addedNews, HttpStatus.CREATED);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/news/" + addedNews.getId().toString());
+
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
@@ -135,14 +140,8 @@ public class NewsController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
     @PutMapping("{id}")
     public ResponseEntity<News> updateNews(@PathVariable(value = "id") UUID newsId,
-                                           @Valid @RequestBody News newsDetails) throws InvocationTargetException, IllegalAccessException {
-        Optional<News> news = newsService.getNewsById(newsId);
-        if (!news.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        news.get().setId(newsId);
-        LOG.info("Updating News for Id : {}", newsId);
-        News updatedNews = newsService.addNews(newsDetails);
+                                           @Valid @RequestBody NewsDetailsDto newsDetailsDto) {
+        News updatedNews = newsService.updateNews(newsId, newsDetailsDto);
         return new ResponseEntity<>(updatedNews, HttpStatus.OK);
     }
 

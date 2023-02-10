@@ -1,5 +1,6 @@
 package com.example.newsservice.service;
 
+import com.example.newsservice.dto.NewsDetailsDto;
 import com.example.newsservice.dto.NewsDto;
 import com.example.newsservice.dto.ReadStatusDto;
 import com.example.newsservice.entity.News;
@@ -37,4 +38,6 @@ public interface NewsService {
     public Optional<User> findUserById(Integer accountId);
 
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole);
+
+    News updateNews(UUID newsId, NewsDetailsDto newsDetails);
 }
