@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -30,8 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -105,6 +105,28 @@ class NewsControllerUnitTest {
     }
 
     @Test
+    @WithAnonymousUser
+    void getAllNewsUnauthenticated() throws Exception {
+        mockMvc.perform(get("/news")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        verify(newsService, never()).getAllNews(any(Pageable.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void getAllNewsForbidden() throws Exception {
+        mockMvc.perform(get("/news")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        verify(newsService, never()).getAllNews(any(Pageable.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
     @WithUserDetails("martin")
     void getNewsById() throws Exception {
         given(newsService.getNewsById(any(UUID.class))).willReturn(Optional.of(news1));
@@ -125,6 +147,28 @@ class NewsControllerUnitTest {
                 .andExpect(jsonPath("$.title", is(news1.getTitle())))
                 .andExpect(jsonPath("$.text", is(news1.getText())))
                 .andExpect(jsonPath("$.allowedRole", is(news1.getAllowedRole())));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void getNewsByIdUnauthenticated() throws Exception {
+        mockMvc.perform(get("/news/" + UUID.randomUUID())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        verify(newsService, never()).getNewsById(any(UUID.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void getNewsByIdForbidden() throws Exception {
+        mockMvc.perform(get("/news/" + UUID.randomUUID())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        verify(newsService, never()).getNewsById(any(UUID.class));
+        verifyNoInteractions(newsService);
     }
 
     @Test
@@ -169,6 +213,42 @@ class NewsControllerUnitTest {
     }
 
     @Test
+    @WithAnonymousUser
+    void addNewsUnauthenticated() throws Exception {
+        news1.setId(null);
+
+        given(newsService.addNews(any(News.class))).willReturn(news2);
+
+        mockMvc.perform(post("/news")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(news1)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+
+        verify(newsService, never()).addNews(any(News.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("martin")
+    void addNewsForbidden() throws Exception {
+        news1.setId(null);
+
+        given(newsService.addNews(any(News.class))).willReturn(news2);
+
+        mockMvc.perform(post("/news")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(news1)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
+        verify(newsService, never()).addNews(any(News.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
     @WithUserDetails("lisa")
     void deleteNews() throws Exception {
         mockMvc.perform(delete("/news/" + news1.getId())
@@ -179,6 +259,28 @@ class NewsControllerUnitTest {
         verify(newsService, times(1)).deleteNews(uuidArgumentCaptor.capture());
 
         assertThat(news1.getId()).isEqualTo(uuidArgumentCaptor.getValue());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void deleteNewsUnauthenticated() throws Exception {
+        mockMvc.perform(delete("/news/" + news1.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        verify(newsService, never()).deleteNews(any(UUID.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("john")
+    void deleteNewsForbidden() throws Exception {
+        mockMvc.perform(delete("/news/" + news1.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        verify(newsService, never()).deleteNews(any(UUID.class));
+        verifyNoInteractions(newsService);
     }
 
     @Test
@@ -202,6 +304,34 @@ class NewsControllerUnitTest {
                 .andExpect(jsonPath("$.allowedRole").value(news2.getAllowedRole()));
 
         verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void updateNewsUnauthenticated() throws Exception {
+        mockMvc.perform(put("/news/" + news1.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(news1)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+
+        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+        verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("john")
+    void updateNewsForbidden() throws Exception {
+        mockMvc.perform(put("/news/" + news1.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(news1)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
+        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+        verifyNoInteractions(newsService);
     }
 
     @Test

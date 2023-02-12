@@ -25,8 +25,12 @@ public class SecurityTestConfig {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet()));
 
+        UserDetails readerUser = new User("john", "john", Stream.of("ROLE_READER")
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet()));
+
         return new InMemoryUserDetailsManager(Arrays.asList(
-                adminUser, publisherUser
+                adminUser, publisherUser, readerUser
         ));
     }
 }
