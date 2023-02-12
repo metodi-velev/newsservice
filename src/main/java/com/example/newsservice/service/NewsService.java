@@ -23,7 +23,7 @@ public interface NewsService {
 
     public News addNews(News news);
 
-    public void deleteNews(News news);
+    public void deleteNews(UUID newsId);
 
     public List<News> searchNews(String query);
 

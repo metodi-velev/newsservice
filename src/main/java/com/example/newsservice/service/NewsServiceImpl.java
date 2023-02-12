@@ -68,8 +68,11 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public void deleteNews(News news) {
-        newsRepository.delete(news);
+    public void deleteNews(UUID newsId) {
+        Optional<News> newsOptional = newsRepository.findById(newsId);
+        Optionals.ifPresentOrElse(newsOptional, newsRepository::delete, () -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+        });
     }
 
     @Override

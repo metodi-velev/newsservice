@@ -121,19 +121,14 @@ public class NewsController {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", "/news/" + addedNews.getId().toString());
 
-        return new ResponseEntity<>(headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(addedNews, headers, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
     @DeleteMapping(value = "{id}", produces = "application/json")
     public ResponseEntity<News> deleteNews(@PathVariable(value = "id") UUID newsId) {
-        Optional<News> news = newsService.getNewsById(newsId);
-        if (!news.isPresent()) {
-            LOG.info("News not found for Id : {}", newsId);
-            return ResponseEntity.notFound().build();
-        }
+        newsService.deleteNews(newsId);
         LOG.info("Deleted News with Id : {}", newsId);
-        newsService.deleteNews(news.get());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
