@@ -20,6 +20,7 @@ import org.thymeleaf.util.StringUtils;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -117,10 +118,12 @@ public class NewsServiceImpl implements NewsService {
         });
     }
 
+    @Override
     public Optional<User> findUserById(Integer accountId) {
         return userRepository.findById(accountId);
     }
 
+    @Override
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole) {
         News news = newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
         roleRepository.findByRoleName(ROLE_PREFIX + allowedRole.toUpperCase()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found. Role name: " + allowedRole));
@@ -135,18 +138,28 @@ public class NewsServiceImpl implements NewsService {
         Optional<News> newsOptional = newsRepository.findById(newsId);
 
         Optionals.ifPresentOrElse(newsOptional, news -> {
-            news.setText(newsDetailsDto.getText());
-            news.setTitle(newsDetailsDto.getTitle());
-            news.setAllowedRole(newsDetailsDto.getAllowedRole());
-            news.setUnAllowedRole(newsDetailsDto.getUnAllowedRole());
-            news.setValidFrom(newsDetailsDto.getValidFrom());
-            news.setValidTo(newsDetailsDto.getValidTo());
+            setNewsFields(newsDetailsDto, news);
             newsRepository.save(news);
         }, () -> {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
         });
         log.info("Updating News for Id : {}", newsId);
         return newsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
+    }
+
+    private void setNewsFields(NewsDetailsDto newsDetailsDto, News news) {
+        if (org.springframework.util.StringUtils.hasText(newsDetailsDto.getText()))
+            news.setText(newsDetailsDto.getText());
+        if (org.springframework.util.StringUtils.hasText(newsDetailsDto.getTitle()))
+            news.setTitle(newsDetailsDto.getTitle());
+        if (org.springframework.util.StringUtils.hasText(newsDetailsDto.getAllowedRole()))
+            news.setAllowedRole(newsDetailsDto.getAllowedRole());
+        if (org.springframework.util.StringUtils.hasText(newsDetailsDto.getUnAllowedRole()))
+            news.setUnAllowedRole(newsDetailsDto.getUnAllowedRole());
+        if (Objects.nonNull(newsDetailsDto.getValidFrom()))
+            news.setValidFrom(newsDetailsDto.getValidFrom());
+        if (Objects.nonNull(newsDetailsDto.getValidFrom()))
+            news.setValidTo(newsDetailsDto.getValidTo());
     }
 
     private boolean isNew(News news) {
