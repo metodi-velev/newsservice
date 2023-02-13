@@ -11,9 +11,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 public class ExceptionHandling implements ErrorController {
@@ -40,6 +40,12 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> notAnImageFileException(NotAnImageFileException exception) {
         LOGGER.error(exception.getMessage());
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<HttpResponse> newsNotFoundException(ResponseStatusException exception) {
+        LOGGER.error(exception.getMessage());
+        return createHttpResponse(exception.getStatus(), exception.getMessage());
     }
 
     private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {

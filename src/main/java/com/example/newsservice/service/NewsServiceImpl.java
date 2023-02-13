@@ -58,8 +58,8 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public Optional<News> getNewsById(UUID newsId) {
-        return newsRepository.findById(newsId);
+    public News getNewsById(UUID newsId) {
+        return newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
     }
 
     @Override

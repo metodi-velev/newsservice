@@ -59,13 +59,9 @@ public class NewsController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "{id}", produces = "application/json")
     public ResponseEntity<News> getNewsById(@PathVariable(value = "id") UUID newsId) {
-        Optional<News> news = newsService.getNewsById(newsId);
+        News news = newsService.getNewsById(newsId);
         LOG.info("Fetching news by Id : {}", newsId);
-        if (!news.isPresent()) {
-            LOG.info("News not found for Id : {}", newsId);
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(news.get());
+        return ResponseEntity.ok().body(news);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'READER', 'PUBLISHER')")

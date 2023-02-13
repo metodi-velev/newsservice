@@ -19,7 +19,7 @@ public interface NewsService {
 
     public Page<News> getAllNews(Pageable pageable);
 
-    public Optional<News> getNewsById(UUID newsId);
+    public News getNewsById(UUID newsId);
 
     public News addNews(News news);
 

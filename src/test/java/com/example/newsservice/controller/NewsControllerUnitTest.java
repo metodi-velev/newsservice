@@ -16,19 +16,24 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -129,7 +134,7 @@ class NewsControllerUnitTest {
     @Test
     @WithUserDetails("martin")
     void getNewsById() throws Exception {
-        given(newsService.getNewsById(any(UUID.class))).willReturn(Optional.of(news1));
+        given(newsService.getNewsById(any(UUID.class))).willReturn(news1);
 
         mockMvc.perform(get("/news/" + UUID.randomUUID())
                         .accept(MediaType.APPLICATION_JSON))
@@ -147,6 +152,20 @@ class NewsControllerUnitTest {
                 .andExpect(jsonPath("$.title", is(news1.getTitle())))
                 .andExpect(jsonPath("$.text", is(news1.getText())))
                 .andExpect(jsonPath("$.allowedRole", is(news1.getAllowedRole())));
+    }
+
+    @Test
+    @WithUserDetails("martin")
+    void getNewsByIdNotFound() throws Exception {
+        UUID newsId = UUID.randomUUID();
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+
+        given(newsService.getNewsById(any(UUID.class))).willThrow(exception);
+
+        mockMvc.perform(get("/news/{newsId}", UUID.randomUUID()))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals("404 NOT_FOUND \"News not found. News id: " + newsId + "\"", result.getResolvedException().getMessage()));
     }
 
     @Test
@@ -262,6 +281,19 @@ class NewsControllerUnitTest {
     }
 
     @Test
+    @WithUserDetails("martin")
+    void deleteNewsNotFound() throws Exception {
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + news1.getId());
+
+        doThrow(exception).when(newsService).deleteNews(news1.getId());
+
+        mockMvc.perform(delete("/news/{newsId}", news1.getId()))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals("404 NOT_FOUND \"News not found. News id: " + news1.getId() + "\"", result.getResolvedException().getMessage()));
+    }
+
+    @Test
     @WithAnonymousUser
     void deleteNewsUnauthenticated() throws Exception {
         mockMvc.perform(delete("/news/" + news1.getId())
@@ -304,6 +336,25 @@ class NewsControllerUnitTest {
                 .andExpect(jsonPath("$.allowedRole").value(news2.getAllowedRole()));
 
         verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void updateNewsNotFound() throws Exception {
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + news1.getId());
+
+        Map<String, Object> newsMap = new HashMap<>();
+        newsMap.put("title", "New Title");
+
+        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class))).willThrow(exception);
+
+        mockMvc.perform(put("/news/{newsId}", news1.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newsMap)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals("404 NOT_FOUND \"News not found. News id: " + news1.getId() + "\"", result.getResolvedException().getMessage()));
     }
 
     @Test
