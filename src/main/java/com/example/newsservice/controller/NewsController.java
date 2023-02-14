@@ -7,6 +7,7 @@ import com.example.newsservice.entity.News;
 import com.example.newsservice.entity.Photo;
 import com.example.newsservice.security.User;
 import com.example.newsservice.service.NewsService;
+import com.example.newsservice.utils.BasicInfo;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
@@ -131,8 +134,8 @@ public class NewsController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
     @PutMapping("{id}")
     public ResponseEntity<News> updateNews(@PathVariable(value = "id") UUID newsId,
-                                           @Valid @RequestBody NewsDetailsDto newsDetailsDto) {
-        News updatedNews = newsService.updateNews(newsId, newsDetailsDto);
+                                           @Validated(BasicInfo.class) @RequestBody NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
+        News updatedNews = newsService.updateNews(newsId, newsDetailsDto, bindingResult);
         return new ResponseEntity<>(updatedNews, HttpStatus.OK);
     }
 

@@ -22,6 +22,7 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
@@ -318,7 +319,7 @@ class NewsControllerUnitTest {
     @Test
     @WithUserDetails("lisa")
     void updateNews() throws Exception {
-        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class))).willReturn(news2);
+        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(news2);
 
         mockMvc.perform(put("/news/" + news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
@@ -335,7 +336,7 @@ class NewsControllerUnitTest {
                 .andExpect(jsonPath("$.validTo").value(news2.getValidTo().toString()))
                 .andExpect(jsonPath("$.allowedRole").value(news2.getAllowedRole()));
 
-        verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+        verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class));
     }
 
     @Test
@@ -346,7 +347,7 @@ class NewsControllerUnitTest {
         Map<String, Object> newsMap = new HashMap<>();
         newsMap.put("title", "New Title");
 
-        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class))).willThrow(exception);
+        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class))).willThrow(exception);
 
         mockMvc.perform(put("/news/{newsId}", news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
@@ -355,6 +356,30 @@ class NewsControllerUnitTest {
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
                 .andExpect(result -> assertEquals("404 NOT_FOUND \"News not found. News id: " + news1.getId() + "\"", result.getResolvedException().getMessage()));
+
+        verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class));
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void updateNewsNotValid() throws Exception {
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: title, text");
+
+        NewsDetailsDto newsDetailsDto = new NewsDetailsDto();
+        newsDetailsDto.setTitle("Short");
+        newsDetailsDto.setText("Short");
+
+        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class))).willThrow(exception);
+
+        mockMvc.perform(put("/news/{newsId}", news1.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newsDetailsDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"The following news fields are not valid: title, text\"", result.getResolvedException().getMessage()));
+
+        verify(newsService, times(1)).updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class));
     }
 
     @Test
@@ -367,7 +392,7 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
-        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class));
         verifyNoInteractions(newsService);
     }
 
@@ -381,7 +406,7 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
-        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class));
+        verify(newsService, never()).updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class));
         verifyNoInteractions(newsService);
     }
 

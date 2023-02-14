@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Optionals;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.server.ResponseStatusException;
 import org.thymeleaf.util.StringUtils;
 
@@ -134,7 +136,13 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public News updateNews(UUID newsId, NewsDetailsDto newsDetailsDto) {
+    public News updateNews(UUID newsId, NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            log.error("There are constraint validation errors");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: " + bindingResult.getFieldErrors().stream()
+                    .map(FieldError::getField)
+                    .collect(Collectors.joining(", ")));
+        }
         Optional<News> newsOptional = newsRepository.findById(newsId);
 
         Optionals.ifPresentOrElse(newsOptional, news -> {

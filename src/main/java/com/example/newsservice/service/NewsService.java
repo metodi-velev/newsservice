@@ -8,6 +8,7 @@ import com.example.newsservice.entity.Photo;
 import com.example.newsservice.security.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.validation.BindingResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,5 +40,5 @@ public interface NewsService {
 
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole);
 
-    News updateNews(UUID newsId, NewsDetailsDto newsDetails);
+    News updateNews(UUID newsId, NewsDetailsDto newsDetails, BindingResult bindingResult);
 }
