@@ -3,6 +3,8 @@ package com.example.newsservice.controller;
 import com.example.newsservice.SecurityTestConfig;
 import com.example.newsservice.dto.NewsDetailsDto;
 import com.example.newsservice.entity.News;
+import com.example.newsservice.mappers.NewsMapper;
+import com.example.newsservice.mappers.NewsMapperImpl;
 import com.example.newsservice.service.NewsService;
 import com.example.newsservice.utils.OffsetDateTimeDeserializer;
 import com.example.newsservice.utils.OffsetDateTimeSerializer;
@@ -43,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest({NewsController.class})
-@Import(SecurityTestConfig.class)
+@Import({SecurityTestConfig.class, NewsMapperImpl.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NewsControllerUnitTest {
 
@@ -52,6 +54,9 @@ class NewsControllerUnitTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    NewsMapper newsMapper;
 
     @Autowired
     MockMvc mockMvc;
@@ -324,7 +329,7 @@ class NewsControllerUnitTest {
         mockMvc.perform(put("/news/" + news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(news1)))
+                        .content(objectMapper.writeValueAsString(newsMapper.newsToNewsDetailsDto(news1))))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -388,7 +393,7 @@ class NewsControllerUnitTest {
         mockMvc.perform(put("/news/" + news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(news1)))
+                        .content(objectMapper.writeValueAsString(newsMapper.newsToNewsDetailsDto(news1))))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
@@ -402,7 +407,7 @@ class NewsControllerUnitTest {
         mockMvc.perform(put("/news/" + news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(news1)))
+                        .content(objectMapper.writeValueAsString(newsMapper.newsToNewsDetailsDto(news1))))
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
