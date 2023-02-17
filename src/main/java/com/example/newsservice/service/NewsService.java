@@ -18,11 +18,11 @@ public interface NewsService {
 
     public String ping();
 
-    public Page<News> getAllNews(Pageable pageable);
+    public Page<NewsDetailsDto> getAllNews(Pageable pageable);
 
-    public News getNewsById(UUID newsId);
+    public NewsDetailsDto getNewsById(UUID newsId);
 
-    public News addNews(News news);
+    public NewsDetailsDto addNews(NewsDetailsDto news);
 
     public void deleteNews(UUID newsId);
 
@@ -40,5 +40,5 @@ public interface NewsService {
 
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole);
 
-    News updateNews(UUID newsId, NewsDetailsDto newsDetails, BindingResult bindingResult);
+    NewsDetailsDto updateNews(UUID newsId, NewsDetailsDto newsDetails, BindingResult bindingResult);
 }

@@ -82,6 +82,7 @@ class NewsControllerUnitTest {
                 .validFrom(OffsetDateTime.parse("2020-03-29T02:05:25+02:00"))
                 .validTo(OffsetDateTime.parse("2020-06-29T02:05:25+02:00"))
                 .allowedRole("READER")
+                .unAllowedRole("PUBLISHER")
                 .build();
 
         news2 = News.builder()
@@ -91,6 +92,7 @@ class NewsControllerUnitTest {
                 .validFrom(OffsetDateTime.parse("2003-06-29T02:05:25+02:00"))
                 .validTo(OffsetDateTime.parse("2003-09-29T02:05:25+02:00"))
                 .allowedRole("READER")
+                .unAllowedRole("PUBLISHER")
                 .build();
     }
 
@@ -105,7 +107,10 @@ class NewsControllerUnitTest {
     @Test
     @WithUserDetails("martin")
     void getAllNews() throws Exception {
-        given(newsService.getAllNews(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(news1, news2)));
+        given(newsService.getAllNews(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(
+                newsMapper.newsToNewsDetailsDto(news1),
+                newsMapper.newsToNewsDetailsDto(news2)))
+        );
 
         mockMvc.perform(get("/news")
                         .accept(MediaType.APPLICATION_JSON))
@@ -140,7 +145,7 @@ class NewsControllerUnitTest {
     @Test
     @WithUserDetails("martin")
     void getNewsById() throws Exception {
-        given(newsService.getNewsById(any(UUID.class))).willReturn(news1);
+        given(newsService.getNewsById(any(UUID.class))).willReturn(newsMapper.newsToNewsDetailsDto(news1));
 
         mockMvc.perform(get("/news/" + UUID.randomUUID())
                         .accept(MediaType.APPLICATION_JSON))
@@ -217,7 +222,7 @@ class NewsControllerUnitTest {
     void addNews() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(News.class))).willReturn(news2);
+        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -242,7 +247,7 @@ class NewsControllerUnitTest {
     void addNewsUnauthenticated() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(News.class))).willReturn(news2);
+        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -251,7 +256,7 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
-        verify(newsService, never()).addNews(any(News.class));
+        verify(newsService, never()).addNews(any(NewsDetailsDto.class));
         verifyNoInteractions(newsService);
     }
 
@@ -260,7 +265,7 @@ class NewsControllerUnitTest {
     void addNewsForbidden() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(News.class))).willReturn(news2);
+        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -269,7 +274,7 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
-        verify(newsService, never()).addNews(any(News.class));
+        verify(newsService, never()).addNews(any(NewsDetailsDto.class));
         verifyNoInteractions(newsService);
     }
 
@@ -324,12 +329,13 @@ class NewsControllerUnitTest {
     @Test
     @WithUserDetails("lisa")
     void updateNews() throws Exception {
-        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(news2);
+        given(newsService.updateNews(any(UUID.class), any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(put("/news/" + news1.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newsMapper.newsToNewsDetailsDto(news1))))
+                        .content(objectMapper.writeValueAsString(newsMapper.newsToNewsDetailsDto(news1)))
+                        .characterEncoding("utf-8"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

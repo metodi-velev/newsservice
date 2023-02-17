@@ -1,6 +1,8 @@
 package com.example.newsservice.controller;
 
+import com.example.newsservice.dto.NewsDetailsDto;
 import com.example.newsservice.entity.News;
+import com.example.newsservice.mappers.NewsMapper;
 import com.example.newsservice.repository.NewsRepository;
 import com.example.newsservice.security.SecurityConfig;
 import org.junit.jupiter.api.*;
@@ -13,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithAnonymousUser;
@@ -22,21 +25,29 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.BindingResultUtils;
+import org.springframework.validation.DataBinder;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @Import(SecurityConfig.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NewsControllerITTest {
 
     private News news;
@@ -50,7 +61,26 @@ class NewsControllerITTest {
     @Autowired
     private NewsRepository newsRepository;
 
+    @Autowired
+    private NewsMapper newsMapper;
+
     protected MockMvc mockMvc;
+
+    NewsDetailsDto newsDetailsDtoUpdate;
+
+    BindingResult bindingResult;
+
+    @BeforeAll
+    void setBeforeAll() {
+        newsDetailsDtoUpdate = NewsDetailsDto.builder()
+                .title("UPDATED Title")
+                .text("UPDATED Text to the test title with minimum 20 characters.")
+                .build();
+
+        DataBinder binder = new DataBinder(newsDetailsDtoUpdate, "newsDetailsDtoUpdate");
+        Map<?, ?> newsDetailsDtoMap = binder.getBindingResult().getModel();
+        bindingResult = BindingResultUtils.getBindingResult(newsDetailsDtoMap, "newsDetailsDtoUpdate");
+    }
 
     @BeforeEach
     void setUp() {
@@ -70,7 +100,7 @@ class NewsControllerITTest {
     @Test
     @WithUserDetails("martin")
     void getAllNews() {
-        ResponseEntity<Page<News>> news = newsController.getAllNews(PageRequest.of(0, 6, Sort.Direction.DESC, "title"));
+        ResponseEntity<Page<NewsDetailsDto>> news = newsController.getAllNews(PageRequest.of(0, 6, Sort.Direction.DESC, "title"));
 
         assertThat(Objects.requireNonNull(news.getBody()).getContent().size()).isEqualTo(3);
     }
@@ -81,7 +111,7 @@ class NewsControllerITTest {
     @WithUserDetails("martin")
     void getAllNewsEmptyList() {
         newsRepository.deleteAll();
-        ResponseEntity<Page<News>> news = newsController.getAllNews(PageRequest.of(0, 6, Sort.Direction.DESC, "title"));
+        ResponseEntity<Page<NewsDetailsDto>> news = newsController.getAllNews(PageRequest.of(0, 6, Sort.Direction.DESC, "title"));
 
         assertThat(Objects.requireNonNull(news.getBody()).getContent().size()).isEqualTo(0);
     }
@@ -94,7 +124,39 @@ class NewsControllerITTest {
         mockMvc.perform(get("/news/" + news.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.title", is(news.getTitle())))
+                .andExpect(jsonPath("$.text", is(news.getText())))
+                .andExpect(jsonPath("$.allowedRole", is(news.getAllowedRole())));
+    }
+
+    @Test
+    @WithUserDetails("martin")
+    void getNewsByIdWithRealUser() {
+        News news = newsRepository.findAll().get(0);
+
+        NewsDetailsDto dto = newsController.getNewsById(news.getId()).getBody();
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.getTitle()).isEqualTo(news.getTitle());
+        assertThat(dto.getText()).isEqualTo(news.getText());
+        assertThat(dto.getValidTo()).isEqualTo(news.getValidTo());
+        assertThat(dto.getReadStatus()).isEqualTo(news.getReadStatus());
+        assertThat(dto.getPhoto()).isEqualTo(news.getPhoto());
+    }
+
+    @Test
+    @WithUserDetails("martin")
+    void getNewsByIdNotFound() {
+        UUID newsId = UUID.randomUUID();
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+
+        ResponseStatusException exceptionThrown = assertThrows(ResponseStatusException.class, () -> newsController.getNewsById(newsId));
+
+        assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
+        assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
+        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
     }
 
     @DisplayName("Get News By ID")
@@ -137,16 +199,91 @@ class NewsControllerITTest {
     void readAllTitles() {
     }
 
+    @Rollback
+    @Transactional
     @Test
+    @WithUserDetails("lisa")
     void addNews() {
+        NewsDetailsDto newsDetailsDto = NewsDetailsDto.builder()
+                .title("Test Title")
+                .text("Text to the test title with minimum 20 characters.")
+                .build();
+
+        ResponseEntity<NewsDetailsDto> responseEntity = newsController.addNews(newsDetailsDto);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.valueOf(201));
+        assertThat(responseEntity.getHeaders().getLocation()).isNotNull();
+
+        String[] locationUUID = responseEntity.getHeaders().getLocation().getPath().split("/");
+        UUID savedUUID = UUID.fromString(locationUUID[2]);
+
+        News news = newsRepository.findById(savedUUID).get();
+        assertThat(news).isNotNull();
+        assertThat(news.getTitle()).isEqualTo(newsDetailsDto.getTitle());
+        assertThat(news.getText()).isEqualTo(newsDetailsDto.getText());
     }
 
+    @Rollback
+    @Transactional
     @Test
+    @WithUserDetails("lisa")
     void deleteNews() {
+        News news = newsRepository.findAll().get(0);
+
+        ResponseEntity<NewsDetailsDto> responseEntity = newsController.deleteNews(news.getId());
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.valueOf(204));
+
+        assertThat(newsRepository.findById(news.getId())).isEmpty();
     }
 
     @Test
+    @WithUserDetails("lisa")
+    void deleteNewsNotFound() {
+        UUID newsId = UUID.randomUUID();
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+
+        ResponseStatusException exceptionThrown = assertThrows(ResponseStatusException.class,
+                () -> newsController.deleteNews(newsId));
+
+        assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
+        assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
+        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
+    }
+
+    @Rollback
+    @Transactional
+    @Test
+    @WithUserDetails("lisa")
     void updateNews() {
+        News news = newsRepository.findAll().get(0);
+        NewsDetailsDto newsDetailsDto = newsMapper.newsToNewsDetailsDto(news);
+
+        ResponseEntity<NewsDetailsDto> response = newsController.updateNews(newsDetailsDto.getId(), newsDetailsDtoUpdate, bindingResult);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.valueOf(200));
+        assertThat(response.getBody().getTitle()).isEqualTo(newsDetailsDtoUpdate.getTitle());
+        assertThat(response.getBody().getText()).isEqualTo(newsDetailsDtoUpdate.getText());
+
+        News updatedNews = newsRepository.findById(news.getId()).get();
+        assertThat(updatedNews).isNotNull();
+        assertThat(updatedNews.getTitle()).isEqualTo(newsDetailsDtoUpdate.getTitle());
+        assertThat(updatedNews.getText()).isEqualTo(newsDetailsDtoUpdate.getText());
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void updateNewsNotFound() {
+        UUID newsId = UUID.randomUUID();
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+
+        ResponseStatusException exceptionThrown = assertThrows(ResponseStatusException.class,
+                () -> newsController.updateNews(newsId, newsDetailsDtoUpdate, bindingResult));
+
+        assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
+        assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
+        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.mapstruct.Condition;
 import org.mapstruct.Mapper;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -40,6 +41,16 @@ public interface NewsMapper {
 
     @Condition
     default boolean isNotNull(ReadStatus value) {
+        return Objects.nonNull(value);
+    }
+
+    @Condition
+    default boolean isNotNull(Long value) {
+        return Objects.nonNull(value);
+    }
+
+    @Condition
+    default boolean isNotNull(Timestamp value) {
         return Objects.nonNull(value);
     }
 }

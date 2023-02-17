@@ -36,7 +36,7 @@ import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 
 @RestController
 @RequestMapping("/news")
-@Api(description = "APIs for news service")
+@Api("APIs for news service")
 public class NewsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewsController.class);
@@ -54,15 +54,15 @@ public class NewsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(produces = "application/json")
-    public ResponseEntity<Page<News>> getAllNews(Pageable pageable) {
+    public ResponseEntity<Page<NewsDetailsDto>> getAllNews(Pageable pageable) {
         LOG.info("Fetching all news, page : {} page size : {} ", pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok().body(newsService.getAllNews(pageable));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "{id}", produces = "application/json")
-    public ResponseEntity<News> getNewsById(@PathVariable(value = "id") UUID newsId) {
-        News news = newsService.getNewsById(newsId);
+    public ResponseEntity<NewsDetailsDto> getNewsById(@PathVariable(value = "id") UUID newsId) {
+        NewsDetailsDto news = newsService.getNewsById(newsId);
         LOG.info("Fetching news by Id : {}", newsId);
         return ResponseEntity.ok().body(news);
     }
@@ -112,9 +112,9 @@ public class NewsController {
     }
 
     @PreAuthorize("hasRole('PUBLISHER')")
-    @PostMapping(produces = "application/json")
-    public ResponseEntity<News> addNews(@Valid @RequestBody News news) {
-        News addedNews = newsService.addNews(news);
+    @PostMapping(produces = "application/json", consumes = "application/json")
+    public ResponseEntity<NewsDetailsDto> addNews(@Validated(BasicInfo.class) @RequestBody NewsDetailsDto news) {
+        NewsDetailsDto addedNews = newsService.addNews(news);
         LOG.info("Created News with Id: {} and title : {}", addedNews.getId(), addedNews.getTitle());
 
         HttpHeaders headers = new HttpHeaders();
@@ -124,18 +124,18 @@ public class NewsController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
-    @DeleteMapping(value = "{id}", produces = "application/json")
-    public ResponseEntity<News> deleteNews(@PathVariable(value = "id") UUID newsId) {
+    @DeleteMapping(value = "{id}")
+    public ResponseEntity<NewsDetailsDto> deleteNews(@PathVariable(value = "id") UUID newsId) {
         newsService.deleteNews(newsId);
         LOG.info("Deleted News with Id : {}", newsId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
-    @PutMapping("{id}")
-    public ResponseEntity<News> updateNews(@PathVariable(value = "id") UUID newsId,
-                                           @Validated(BasicInfo.class) @RequestBody NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
-        News updatedNews = newsService.updateNews(newsId, newsDetailsDto, bindingResult);
+    @PutMapping(value = "{id}", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<NewsDetailsDto> updateNews(@PathVariable(value = "id") UUID newsId,
+                                                     @Validated(BasicInfo.class) @RequestBody NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
+        NewsDetailsDto updatedNews = newsService.updateNews(newsId, newsDetailsDto, bindingResult);
         return new ResponseEntity<>(updatedNews, HttpStatus.OK);
     }
 
@@ -150,12 +150,10 @@ public class NewsController {
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    ResponseEntity<List> badReqeustHandler(ConstraintViolationException e) {
+    ResponseEntity<List<String>> badRequestHandler(ConstraintViolationException e) {
         List<String> errors = new ArrayList<>(e.getConstraintViolations().size());
 
-        e.getConstraintViolations().forEach(constraintViolation -> {
-            errors.add(constraintViolation.getPropertyPath().toString() + " : " + constraintViolation.getMessage());
-        });
+        e.getConstraintViolations().forEach(constraintViolation -> errors.add(constraintViolation.getPropertyPath().toString() + " : " + constraintViolation.getMessage()));
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }

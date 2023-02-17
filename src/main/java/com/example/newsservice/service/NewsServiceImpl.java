@@ -6,6 +6,7 @@ import com.example.newsservice.dto.ReadStatusDto;
 import com.example.newsservice.entity.News;
 import com.example.newsservice.entity.Photo;
 import com.example.newsservice.entity.ReadStatus;
+import com.example.newsservice.mappers.NewsMapper;
 import com.example.newsservice.repository.*;
 import com.example.newsservice.security.User;
 import lombok.extern.slf4j.Slf4j;
@@ -38,16 +39,19 @@ public class NewsServiceImpl implements NewsService {
     private final PhotoRepository photoRepository;
     private final RoleRepository roleRepository;
 
+    private final NewsMapper newsMapper;
+
     public NewsServiceImpl(NewsRepository newsRepository,
                            UserRepository userRepository,
                            ReadStatusRepository readStatusRepository,
                            PhotoRepository photoRepository,
-                           RoleRepository roleRepository) {
+                           RoleRepository roleRepository, NewsMapper newsmapper) {
         this.newsRepository = newsRepository;
         this.userRepository = userRepository;
         this.readStatusRepository = readStatusRepository;
         this.photoRepository = photoRepository;
         this.roleRepository = roleRepository;
+        this.newsMapper = newsmapper;
     }
 
     @Override
@@ -56,18 +60,18 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public Page<News> getAllNews(Pageable pageable) {
-        return newsRepository.findAll(pageable);
+    public Page<NewsDetailsDto> getAllNews(Pageable pageable) {
+        return newsRepository.findAll(pageable).map(newsMapper::newsToNewsDetailsDto);
     }
 
     @Override
-    public News getNewsById(UUID newsId) {
-        return newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
+    public NewsDetailsDto getNewsById(UUID newsId) {
+        return newsMapper.newsToNewsDetailsDto(newsRepository.findById(newsId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId)));
     }
 
     @Override
-    public News addNews(News news) {
-        return newsRepository.save(news);
+    public NewsDetailsDto addNews(NewsDetailsDto news) {
+        return newsMapper.newsToNewsDetailsDto(newsRepository.save(newsMapper.newsDetailsDtoToNews(news)));
     }
 
     @Override
@@ -77,6 +81,16 @@ public class NewsServiceImpl implements NewsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
         });
     }
+
+    // Second alternative implementation of deleteNews
+/*    @Override
+    public void deleteNews(UUID newsId) {
+        if (newsRepository.existsById(newsId)) {
+            newsRepository.deleteById(newsId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
+        }
+    }*/
 
     @Override
     public List<News> searchNews(String query) {
@@ -136,7 +150,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public News updateNews(UUID newsId, NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
+    public NewsDetailsDto updateNews(UUID newsId, NewsDetailsDto newsDetailsDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             log.error("There are constraint validation errors");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: " + bindingResult.getFieldErrors().stream()
@@ -152,7 +166,7 @@ public class NewsServiceImpl implements NewsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId);
         });
         log.info("Updating News for Id : {}", newsId);
-        return newsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId));
+        return newsMapper.newsToNewsDetailsDto(newsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId)));
     }
 
     private void setNewsFields(NewsDetailsDto newsDetailsDto, News news) {
