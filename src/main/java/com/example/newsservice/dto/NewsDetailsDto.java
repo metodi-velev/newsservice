@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
@@ -32,10 +33,12 @@ public class NewsDetailsDto {
 
     private Timestamp lastModifiedDate;
 
+    @NotNull
     @NotBlank(groups = BasicInfo.class)
-    @Size(min = 6, max = 30, groups = BasicInfo.class)
+    @Size(min = 6, max = 50, groups = BasicInfo.class)
     private String title;
 
+    @NotNull
     @NotBlank(groups = BasicInfo.class)
     @Size(min = 20, max = 200, groups = BasicInfo.class)
     private String text;

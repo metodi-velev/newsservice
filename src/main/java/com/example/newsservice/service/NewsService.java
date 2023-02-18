@@ -41,4 +41,6 @@ public interface NewsService {
     public Photo getPictureForNewsIdAndPictureIdAndRole(UUID newsId, UUID pictureId, String allowedRole);
 
     NewsDetailsDto updateNews(UUID newsId, NewsDetailsDto newsDetails, BindingResult bindingResult);
+
+    Optional<NewsDetailsDto> patchNewsById(UUID newsId, NewsDetailsDto newsDetailsDto);
 }

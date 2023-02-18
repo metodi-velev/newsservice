@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -173,6 +174,21 @@ public class NewsServiceImpl implements NewsService {
         });
         log.info("Updating News for Id : {}", newsId);
         return newsMapper.newsToNewsDetailsDto(newsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "News not found. News id: " + newsId)));
+    }
+
+    @Override
+    public Optional<NewsDetailsDto> patchNewsById(UUID newsId, NewsDetailsDto newsDetailsDto) {
+        AtomicReference<Optional<NewsDetailsDto>> atomicReference = new AtomicReference<>();
+
+        Optionals.ifPresentOrElse(newsRepository.findById(newsId), news -> {
+            setNewsFields(newsDetailsDto, news);
+            atomicReference.set(Optional.of(newsMapper
+                    .newsToNewsDetailsDto(newsRepository.save(news))));
+        }, () -> {
+            atomicReference.set(Optional.empty());
+        });
+
+        return atomicReference.get();
     }
 
     private void setNewsFields(NewsDetailsDto newsDetailsDto, News news) {

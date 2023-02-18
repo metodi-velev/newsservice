@@ -6,6 +6,7 @@ import com.example.newsservice.mappers.NewsMapper;
 import com.example.newsservice.repository.NewsRepository;
 import com.example.newsservice.security.SecurityConfig;
 import com.example.newsservice.validators.NewsDetailsDtoValidator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -24,6 +25,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -32,6 +34,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -44,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -64,6 +69,9 @@ class NewsControllerITTest {
 
     @Autowired
     private NewsMapper newsMapper;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     protected MockMvc mockMvc;
 
@@ -306,6 +314,27 @@ class NewsControllerITTest {
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
         assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
+        assertThat(dataBinder.getBindingResult().getFieldErrors("title").get(0).getDefaultMessage()).isEqualTo("News title must be at least 6 characters long.");
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void patchNewsNotValidTooLongTitle() throws Exception {
+        News news = newsRepository.findAll().get(0);
+
+        Map<String, Object> newsMap = new HashMap<>();
+        newsMap.put("title", "Test Title which is longer than 50 characters and thus is rejected.");
+
+        MvcResult mvcResult = mockMvc.perform(patch("/news/{newsId}", news.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newsMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andDo(print())
+                .andReturn();
+
+        System.out.println(mvcResult.getResponse().getContentAsString());
     }
 
     @Test

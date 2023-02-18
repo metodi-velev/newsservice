@@ -8,12 +8,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,26 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> internalServerErrorException(Exception exception) {
         LOGGER.error(exception.getMessage());
         return createHttpResponse(INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
+    }
+
+    @ExceptionHandler
+    ResponseEntity<List<Map<String, String>>> handleJPAViolations(TransactionSystemException exception) {
+        ResponseEntity.BodyBuilder responseEntity = ResponseEntity.badRequest();
+
+        if (exception.getCause().getCause() instanceof ConstraintViolationException) {
+            ConstraintViolationException ve = (ConstraintViolationException) exception.getCause().getCause();
+            List<Map<String, String>> errors = ve.getConstraintViolations().stream()
+                    .map(constraintViolation -> {
+                        Map<String, String> errorMap = new HashMap<>();
+                        errorMap.put(constraintViolation.getPropertyPath().toString(),
+                                constraintViolation.getMessage()
+                        );
+                        return errorMap;
+                    }).collect(Collectors.toList());
+            return responseEntity.body(errors);
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler({AccessDeniedException.class})

@@ -26,8 +26,8 @@ public class NewsDetailsDtoValidator implements Validator {
         }
 
         if (news.getTitle() != null &&
-                news.getTitle().length() > 30) {
-            errors.rejectValue("title", "title.too.long", "News title must be at most 30 characters long.");
+                news.getTitle().length() > 50) {
+            errors.rejectValue("title", "title.too.long", "News title must be at most 50 characters long.");
         }
 
         if (news.getText() != null &&

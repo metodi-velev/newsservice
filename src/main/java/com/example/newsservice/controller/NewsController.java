@@ -5,6 +5,7 @@ import com.example.newsservice.dto.NewsDto;
 import com.example.newsservice.dto.ReadStatusDto;
 import com.example.newsservice.entity.News;
 import com.example.newsservice.entity.Photo;
+import com.example.newsservice.exception.NotFoundException;
 import com.example.newsservice.security.User;
 import com.example.newsservice.service.NewsService;
 import com.example.newsservice.utils.BasicInfo;
@@ -146,6 +147,16 @@ public class NewsController {
                                                        @Valid @RequestBody ReadStatusDto readStatusDto) {
         newsService.updateNewsReadStatus(newsId, accountId, readStatusDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'PUBLISHER')")
+    @PatchMapping(value = "{newsId}", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<NewsDetailsDto> updateBeerPatchById(@PathVariable("newsId") UUID newsId,
+                                                              @RequestBody NewsDetailsDto news) { //omit Validated to test JPA validation on entity level
+
+        NewsDetailsDto updatedNews = newsService.patchNewsById(newsId, news).orElseThrow(NotFoundException::new);
+
+        return new ResponseEntity<>(updatedNews, HttpStatus.NO_CONTENT);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -35,7 +38,16 @@ public class News extends BaseEntity {
         this.photo = photo;
     }
 
+    @NotNull
+    @NotBlank
+    @Size(max = 50)
+    @Column(length = 50)
     private String title;
+
+    @NotNull
+    @NotBlank
+    @Size(max = 200)
+    @Column(length = 200)
     private String text;
 
     @Column(unique = true)
