@@ -22,7 +22,7 @@ public interface NewsService {
 
     public NewsDetailsDto getNewsById(UUID newsId);
 
-    public NewsDetailsDto addNews(NewsDetailsDto news);
+    public NewsDetailsDto addNews(NewsDetailsDto news, BindingResult bindingResult);
 
     public void deleteNews(UUID newsId);
 

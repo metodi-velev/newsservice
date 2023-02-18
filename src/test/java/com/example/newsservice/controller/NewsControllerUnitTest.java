@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.server.ResponseStatusException;
@@ -222,7 +223,7 @@ class NewsControllerUnitTest {
     void addNews() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
+        given(newsService.addNews(any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -247,7 +248,7 @@ class NewsControllerUnitTest {
     void addNewsUnauthenticated() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
+        given(newsService.addNews(any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -256,7 +257,7 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
-        verify(newsService, never()).addNews(any(NewsDetailsDto.class));
+        verify(newsService, never()).addNews(any(NewsDetailsDto.class), any(BindingResult.class));
         verifyNoInteractions(newsService);
     }
 
@@ -265,7 +266,7 @@ class NewsControllerUnitTest {
     void addNewsForbidden() throws Exception {
         news1.setId(null);
 
-        given(newsService.addNews(any(NewsDetailsDto.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
+        given(newsService.addNews(any(NewsDetailsDto.class), any(BindingResult.class))).willReturn(newsMapper.newsToNewsDetailsDto(news2));
 
         mockMvc.perform(post("/news")
                         .accept(MediaType.APPLICATION_JSON)
@@ -274,8 +275,33 @@ class NewsControllerUnitTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
-        verify(newsService, never()).addNews(any(NewsDetailsDto.class));
+        verify(newsService, never()).addNews(any(NewsDetailsDto.class), any(BindingResult.class));
         verifyNoInteractions(newsService);
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void addNewsNotValid() throws Exception {
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: title, text");
+
+        NewsDetailsDto newsDetailsDto = new NewsDetailsDto();
+        newsDetailsDto.setTitle("Short");
+        newsDetailsDto.setText("Short");
+
+        given(newsService.addNews(any(NewsDetailsDto.class), any(BindingResult.class))).willThrow(exception);
+
+        MvcResult mvcResult = mockMvc.perform(post("/news")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newsDetailsDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals("400 BAD_REQUEST \"The following news fields are not valid: title, text\"", result.getResolvedException().getMessage()))
+                .andReturn();
+
+        System.out.println(mvcResult.getResponse().getContentAsString());
+
+        verify(newsService, times(1)).addNews(any(NewsDetailsDto.class), any(BindingResult.class));
     }
 
     @Test

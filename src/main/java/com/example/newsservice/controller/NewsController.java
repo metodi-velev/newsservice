@@ -113,8 +113,8 @@ public class NewsController {
 
     @PreAuthorize("hasRole('PUBLISHER')")
     @PostMapping(produces = "application/json", consumes = "application/json")
-    public ResponseEntity<NewsDetailsDto> addNews(@Validated(BasicInfo.class) @RequestBody NewsDetailsDto news) {
-        NewsDetailsDto addedNews = newsService.addNews(news);
+    public ResponseEntity<NewsDetailsDto> addNews(@Validated(BasicInfo.class) @RequestBody NewsDetailsDto news, BindingResult bindingResult) {
+        NewsDetailsDto addedNews = newsService.addNews(news, bindingResult);
         LOG.info("Created News with Id: {} and title : {}", addedNews.getId(), addedNews.getTitle());
 
         HttpHeaders headers = new HttpHeaders();

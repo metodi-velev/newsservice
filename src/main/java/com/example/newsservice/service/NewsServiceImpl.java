@@ -70,7 +70,13 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public NewsDetailsDto addNews(NewsDetailsDto news) {
+    public NewsDetailsDto addNews(NewsDetailsDto news, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            log.error("There are constraint validation errors");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: " + bindingResult.getFieldErrors().stream()
+                    .map(FieldError::getField)
+                    .collect(Collectors.joining(", ")));
+        }
         return newsMapper.newsToNewsDetailsDto(newsRepository.save(newsMapper.newsDetailsDtoToNews(news)));
     }
 

@@ -5,7 +5,6 @@ import com.example.newsservice.entity.ReadStatus;
 import com.example.newsservice.utils.AdvanceInfo;
 import com.example.newsservice.utils.BasicInfo;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
@@ -33,6 +32,7 @@ public class NewsDetailsDto {
 
     private Timestamp lastModifiedDate;
 
+    @NotBlank(groups = BasicInfo.class)
     @Size(min = 6, max = 30, groups = BasicInfo.class)
     private String title;
 

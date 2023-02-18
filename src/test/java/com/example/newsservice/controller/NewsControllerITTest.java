@@ -5,6 +5,7 @@ import com.example.newsservice.entity.News;
 import com.example.newsservice.mappers.NewsMapper;
 import com.example.newsservice.repository.NewsRepository;
 import com.example.newsservice.security.SecurityConfig;
+import com.example.newsservice.validators.NewsDetailsDtoValidator;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -204,12 +205,7 @@ class NewsControllerITTest {
     @Test
     @WithUserDetails("lisa")
     void addNews() {
-        NewsDetailsDto newsDetailsDto = NewsDetailsDto.builder()
-                .title("Test Title")
-                .text("Text to the test title with minimum 20 characters.")
-                .build();
-
-        ResponseEntity<NewsDetailsDto> responseEntity = newsController.addNews(newsDetailsDto);
+        ResponseEntity<NewsDetailsDto> responseEntity = newsController.addNews(newsDetailsDtoUpdate, bindingResult);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.valueOf(201));
         assertThat(responseEntity.getHeaders().getLocation()).isNotNull();
@@ -219,8 +215,8 @@ class NewsControllerITTest {
 
         News news = newsRepository.findById(savedUUID).get();
         assertThat(news).isNotNull();
-        assertThat(news.getTitle()).isEqualTo(newsDetailsDto.getTitle());
-        assertThat(news.getText()).isEqualTo(newsDetailsDto.getText());
+        assertThat(news.getTitle()).isEqualTo(newsDetailsDtoUpdate.getTitle());
+        assertThat(news.getText()).isEqualTo(newsDetailsDtoUpdate.getText());
     }
 
     @Rollback
@@ -281,6 +277,32 @@ class NewsControllerITTest {
                 () -> newsController.updateNews(newsId, newsDetailsDtoUpdate, bindingResult));
 
         assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
+        assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
+        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
+    }
+
+    @Test
+    @WithUserDetails("lisa")
+    void updateNewsNotValid() {
+        News news = newsRepository.findAll().get(0);
+        NewsDetailsDto newsDetailsDto = newsMapper.newsToNewsDetailsDto(news);
+
+        NewsDetailsDto newsDetailsDtoUpdateNotValid = NewsDetailsDto.builder()
+                .title("UP")  //Title is not valid - it is shorter than 6 chars.
+                .text("UPDATED Text") //Text is not valid - it is shorter than 20 chars.
+                .build();
+
+        DataBinder dataBinder = new DataBinder(newsDetailsDtoUpdateNotValid);
+        dataBinder.addValidators(new NewsDetailsDtoValidator());
+        dataBinder.validate();
+
+        ResponseStatusException exception = new ResponseStatusException(HttpStatus.BAD_REQUEST, "The following news fields are not valid: title, text");
+
+        ResponseStatusException exceptionThrown = assertThrows(ResponseStatusException.class,
+                () -> newsController.updateNews(newsDetailsDto.getId(), newsDetailsDtoUpdateNotValid, dataBinder.getBindingResult()));
+
+        assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("The following news fields are not valid: title, text"));
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
         assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
