@@ -164,7 +164,7 @@ class NewsControllerITTest {
 
         assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
-        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getStatusCode()).isEqualTo(exception.getStatusCode());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
     }
 
@@ -251,7 +251,7 @@ class NewsControllerITTest {
 
         assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
-        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getStatusCode()).isEqualTo(exception.getStatusCode());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
     }
 
@@ -286,7 +286,7 @@ class NewsControllerITTest {
 
         assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("News not found. News id: " + newsId));
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
-        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getStatusCode()).isEqualTo(exception.getStatusCode());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
     }
 
@@ -312,7 +312,7 @@ class NewsControllerITTest {
 
         assertTrue(Objects.requireNonNull(exceptionThrown.getMessage()).contains("The following news fields are not valid: title, text"));
         assertThat(exceptionThrown.getMessage()).isEqualTo(exception.getMessage());
-        assertThat(exceptionThrown.getStatus()).isEqualTo(exception.getStatus());
+        assertThat(exceptionThrown.getStatusCode()).isEqualTo(exception.getStatusCode());
         assertThat(exceptionThrown.getReason()).isEqualTo(exception.getReason());
         assertThat(dataBinder.getBindingResult().getFieldErrors("title").get(0).getDefaultMessage()).isEqualTo("News title must be at least 6 characters long.");
     }

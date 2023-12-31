@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.TransactionSystemException;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +75,7 @@ public class ExceptionHandling implements ErrorController {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<HttpResponse> newsNotFoundException(ResponseStatusException exception) {
         LOGGER.error(exception.getMessage());
-        return createHttpResponse(exception.getStatus(), exception.getMessage());
+        return createHttpResponse(exception.getStatusCode(), exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -89,16 +90,15 @@ public class ExceptionHandling implements ErrorController {
         return ResponseEntity.badRequest().body(errorList);
     }
 
-    private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {
+    private ResponseEntity<HttpResponse> createHttpResponse(HttpStatusCode httpStatus, String message) {
         return new ResponseEntity<>(HttpResponse.builder()
                 .httpStatusCode(httpStatus.value())
-                .httpStatus(httpStatus)
-                .reason(httpStatus.getReasonPhrase().toUpperCase())
+                .httpStatus((HttpStatus) httpStatus)
+                .reason(((HttpStatus) httpStatus).getReasonPhrase().toUpperCase())
                 .message(message)
                 .build(), httpStatus);
     }
 
-    @Override
     public String getErrorPath() {
         return ERROR_PATH;
     }

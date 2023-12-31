@@ -6,29 +6,29 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeRequests(authorize -> {
                     authorize
-                            .antMatchers("/h2-console/**").permitAll() //do not use in production!
-                            .antMatchers("/", "/webjars/**", "/login", "/resources/**").permitAll()
-                            .antMatchers(HttpMethod.GET, "/news/**")
+                            .requestMatchers("/h2-console/**").permitAll() //do not use in production!
+                            .requestMatchers("/", "/webjars/**", "/login", "/resources/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/news/**")
                             .hasAnyRole("ADMIN", "PUBLISHER", "READER")
-                            .antMatchers(HttpMethod.GET, "/public/**")
+                            .requestMatchers(HttpMethod.GET, "/public/**")
                             .hasAnyRole("ADMIN", "PUBLISHER", "READER")
-                            .mvcMatchers(HttpMethod.DELETE, "/news")
+                            .requestMatchers(HttpMethod.DELETE, "/news")
                             .hasAnyRole("ADMIN")
-                            .mvcMatchers(HttpMethod.PUT, "/news")
+                            .requestMatchers(HttpMethod.PUT, "/news")
                             .hasAnyRole("ADMIN");
                 })
                 .authorizeRequests()
@@ -40,6 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         //h2 console config
         http.headers().frameOptions().sameOrigin();
+
+        return http.build();
     }
 
     @Bean
