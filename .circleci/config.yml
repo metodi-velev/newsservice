@@ -1,6 +1,6 @@
-version: 2 # use CircleCI 2.0
+version: 2.1 # use CircleCI 2.1
 jobs: # a collection of steps
-  build: # runs not using Workflows must have a `build` job as entry point
+  build-and-test: # runs not using Workflows must have a `build` job as entry point
 
     working_directory: ~/circleci-newsservice # directory where steps will run
 
@@ -22,8 +22,14 @@ jobs: # a collection of steps
             - ~/.m2
           key: circleci-newsservice-{{ checksum "pom.xml" }}
 
-      - run: mvn package # run the actual tests
-
+            # Use mvn clean and package as the standard maven build phase
+      - run:
+          name: Build
+          command: mvn -B -DskipTests clean package
+            # Then run your tests!
+      - run:
+          name: Test
+          command: mvn test
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard.
           # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: target/surefire-reports
@@ -32,3 +38,10 @@ jobs: # a collection of steps
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: target/newsservice-0.0.1-SNAPSHOT.jar
       # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/configuration-reference/#workflows
+workflows:
+  sample-workflow-1: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
+    jobs:
+      - build-and-test
