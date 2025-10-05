@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,7 +31,7 @@ public class BaseEntity {
             strategy = "org.hibernate.id.UUIDGenerator"
     )
     @JdbcTypeCode(SqlTypes.UUID)
-    @Column(length = 36, columnDefinition = "varchar", unique = true, updatable = false, nullable = false)
+    @Column(length = 36, unique = true, updatable = false, nullable = false)
     private UUID id;
 
     @Version
