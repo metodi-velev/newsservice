@@ -20,7 +20,7 @@ public class SecurityConfig {
         http
                 .authorizeRequests(authorize -> {
                     authorize
-                            .requestMatchers("/h2-console/**").permitAll() //do not use in production!
+                            .requestMatchers("/h2-console/**", "/h2-console").permitAll() //do not use in production!
                             .requestMatchers("/", "/webjars/**", "/login", "/resources/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/news/**")
                             .hasAnyRole("ADMIN", "PUBLISHER", "READER")

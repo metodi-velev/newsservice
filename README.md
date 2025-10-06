@@ -86,4 +86,17 @@ News contains simple text or/and photo. <br>
 All of the non-public endpoints are secured using basic authentication i.e. using base64 encoded username:password as Authorization header in the http request.
 For example for the user lisa: Authorization=Basic bGlzYTpsaXNh
 
+---
 
+## H2-Console available at `http://localhost:8080/h2-console`, no login required
+<ul>
+    <li>Enter the following sql query to get all `usernames` with their assigned `roles`: </li>
+</ul>
+
+```sql
+SELECT u.username, r.role_name FROM "user" u
+    inner join user_role ur
+        on u.id = ur.user_id
+    inner join role r
+        on ur.role_id = r.id;
+```
