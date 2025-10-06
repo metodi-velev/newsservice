@@ -4,7 +4,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -41,7 +44,7 @@ public class SecurityTestConfig {
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeRequests(authorize -> {
+                .authorizeHttpRequests(authorize -> {
                     authorize
                             .requestMatchers("/h2-console/**").permitAll() //do not use in production!
                             .requestMatchers("/", "/webjars/**", "/login", "/resources/**").permitAll()
@@ -56,15 +59,12 @@ public class SecurityTestConfig {
                             .requestMatchers(HttpMethod.POST, "/news")
                             .hasAnyRole("PUBLISHER");
                 })
-                .authorizeRequests()
-                .anyRequest().authenticated()
-                .and()
-                .formLogin().and()
-                .httpBasic()
-                .and().csrf().disable();
+                .formLogin(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
 
         //h2 console config
-        http.headers().frameOptions().sameOrigin();
+        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }

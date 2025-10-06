@@ -10,9 +10,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,43 +25,46 @@ public class UserDataLoader implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         loadSecurityData();
     }
 
     private void loadSecurityData() {
-        Role admin = roleRepository.save(Role.builder().roleName("ROLE_ADMIN").build());
-        Role reader = roleRepository.save(Role.builder().roleName("ROLE_READER").build());
-        Role publisher = roleRepository.save(Role.builder().roleName("ROLE_PUBLISHER").build());
+        Role admin = createRoleIfNotFound("ROLE_ADMIN");
+        Role reader = createRoleIfNotFound("ROLE_READER");
+        Role publisher = createRoleIfNotFound("ROLE_PUBLISHER");
 
-        User martin = userRepository.save(User.builder()
-                .username("martin")
-                .password(passwordEncoder.encode("martin"))
-                .role(admin)
-                .build());
-
-        User john = userRepository.save(User.builder()
-                .username("john")
-                .password(passwordEncoder.encode("john"))
-                .role(reader)
-                .role(publisher)
-                .build());
-
-        User lisa = userRepository.save(User.builder()
-                .username("lisa")
-                .password(passwordEncoder.encode("lisa"))
-                .role(publisher)
-                .build());
-
-        admin.setUsers(Stream.of(martin).collect(Collectors.toSet()));
-        roleRepository.save(admin);
-
-        reader.setUsers(Stream.of(john).collect(Collectors.toSet()));
-        roleRepository.save(reader);
-
-        publisher.setUsers(Stream.of(john, lisa).collect(Collectors.toSet()));
-        roleRepository.save(publisher);
+        createUserIfNotFound("martin", "martin", admin);
+        createUserIfNotFound("john", "john", reader, publisher);
+        createUserIfNotFound("lisa", "lisa", publisher);
 
         log.info("Users Loaded: " + userRepository.count());
+    }
+
+    private Role createRoleIfNotFound(String roleName) {
+        return roleRepository.findByRoleName(roleName)
+                .orElseGet(() -> roleRepository.save(Role.builder().roleName(roleName).build()));
+    }
+
+    private void createUserIfNotFound(String username, String password, Role... roles) {
+        userRepository.findByUsername(username).ifPresentOrElse(
+                u -> {}
+                ,
+                () -> {
+
+                    User user =
+                            User.builder()
+                                    .username(username)
+                                    .password(passwordEncoder.encode(password))
+                                    .roles(Set.of(roles))
+                                    .enabled(true)
+                                    .accountNonExpired(true)
+                                    .accountNonLocked(true)
+                                    .credentialsNonExpired(true)
+                                    .build();
+
+                    userRepository.save(user);
+                });
     }
 }

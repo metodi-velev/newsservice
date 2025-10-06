@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     Optional<Photo> findByPhotoName(String name);
     Optional<Photo> findByIdAndNewsIdAndIgnoreCaseNewsAllowedRole(UUID id, UUID newsId, String allowedRole);
+    Optional<Photo> findByLinkToPhoto(String linkToPhoto);
 }

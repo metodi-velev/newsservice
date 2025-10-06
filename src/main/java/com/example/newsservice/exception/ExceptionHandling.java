@@ -39,6 +39,12 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
     }
 
+    @ExceptionHandler(PhotoCreationException.class)
+    public ResponseEntity<HttpResponse> photoCreationException(PhotoCreationException exception) {
+        LOGGER.error(exception.getMessage());
+        return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
     @ExceptionHandler
     ResponseEntity<List<Map<String, String>>> handleJPAViolations(TransactionSystemException exception) {
         ResponseEntity.BodyBuilder responseEntity = ResponseEntity.badRequest();

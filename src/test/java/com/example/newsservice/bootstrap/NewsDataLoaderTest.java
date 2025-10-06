@@ -4,6 +4,8 @@ import com.example.newsservice.repository.NewsRepository;
 import com.example.newsservice.repository.PhotoRepository;
 import com.example.newsservice.repository.ReadStatusRepository;
 import com.example.newsservice.repository.UserRepository;
+import com.example.newsservice.service.PhotoService;
+import com.example.newsservice.service.PhotoServiceImpl;
 import com.example.newsservice.utils.PhotoUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +17,7 @@ import org.springframework.context.annotation.Import;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(PhotoUtils.class)
+@Import({PhotoUtils.class, PhotoServiceImpl.class})
 class NewsDataLoaderTest {
 
     @Autowired
@@ -31,13 +33,13 @@ class NewsDataLoaderTest {
     private PhotoRepository photoRepository;
 
     @Autowired
-    private PhotoUtils photoUtils;
+    private PhotoService photoService;
 
     private NewsDataLoader newsDataLoader;
 
     @BeforeEach
     void setUp() {
-        newsDataLoader = new NewsDataLoader(newsRepository, readStatusRepository, userRepository, photoRepository, photoUtils);
+        newsDataLoader = new NewsDataLoader(newsRepository, readStatusRepository, userRepository, photoRepository, photoService);
     }
 
     @AfterEach

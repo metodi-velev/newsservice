@@ -98,3 +98,13 @@ SELECT u.username, r.role_name FROM "user" u
     inner join role r
         on ur.role_id = r.id;
 ```
+
+- SQL query to retrieve all news articles along with their associated photos, read status information and corresponding usernames:
+
+```sql
+SELECT n.title, p.photo_name, r.account_id, u.username
+    FROM NEWS n
+         LEFT JOIN PHOTO p ON n.photo_id = p.id
+         LEFT JOIN READ_STATUS r ON n.read_status_id = r.id
+         LEFT JOIN "user" u ON r.account_id =u.id;
+```

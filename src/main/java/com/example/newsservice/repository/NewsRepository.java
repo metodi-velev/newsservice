@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -18,4 +19,6 @@ public interface NewsRepository extends JpaRepository<News, UUID> {
     List<News> findAllByIgnoreCaseAllowedRoleAndReadStatusAccountIdAndReadStatusReadDate(String allowedRole, Integer accountId, OffsetDateTime readDate);
 
     List<News> findAllByReadStatusAccountIdAndReadStatusReadDate(Integer accountId, OffsetDateTime readDate);
+
+    Optional<News> findByLinkToPhoto(String linkToPhoto);
 }

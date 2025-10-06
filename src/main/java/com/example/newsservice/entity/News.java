@@ -57,12 +57,12 @@ public class News extends BaseEntity {
 
     private String unAllowedRole;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE})
     @JoinColumn(name = "read_status_id", referencedColumnName = "id")
     @JsonManagedReference
     private ReadStatus readStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE})
     @JoinColumn(name = "photo_id", referencedColumnName = "id")
     @JsonManagedReference
     private Photo photo;
