@@ -89,9 +89,7 @@ For example for the user lisa: Authorization=Basic bGlzYTpsaXNh
 ---
 
 ## H2-Console available at `http://localhost:8080/h2-console`, no login required
-<ul>
-    <li>Enter the following sql query to get all `usernames` with their assigned `roles`: </li>
-</ul>
+- Enter the following sql query to get all `usernames` with their assigned `roles`:
 
 ```sql
 SELECT u.username, r.role_name FROM "user" u
